@@ -18,11 +18,26 @@ router.get('/register', (req, res) => {
 // post data to db
 router.post('/register', (req, res) => {
   const { name, email, password, confirmPassword } = req.body
+
+  const errors = []
+
+  if (!name || !email || !password || !confirmPassword) {
+    errors.push({ message: 'Name, Email, Password and Confrim Password are all required!' })
+  }
+  if (password !== confirmPassword) {
+    errors.push({ message: 'Password and Confirm Password do not match!' })
+  }
+  if (errors.length !== 0) {
+    return res.render('register', { name, email, password, confirmPassword, errors })
+  }
+
   User.findOne({ where: { email } })
     .then(user => {
       if (user) {
-        console.log('User already exists!')
-        return res.render('register', { name, email, password, confirmPassword })
+        errors.push({
+          message: 'This email has already registered!'
+        })
+        return res.render('register', { name, email, password, confirmPassword, errors })
       }
       return bcrypt
         .genSalt(10)
@@ -37,19 +52,33 @@ router.post('/register', (req, res) => {
 //login
 //get page
 router.get('/login', (req, res) => {
+  req.flash('warning_msg')
   res.render('login')
 })
 //post data
-router.post('/login', passport.authenticate('local', {
-  successRedirect: '/',
-  failureRedirect: '/users/login'
-}))
+router.post('/login', (req, res, next) => {
+
+  const { password, email } = req.body
+  if (!email || !password) {
+
+    return res.render('login', { email, password, error: "Email and Password are all required!" })
+  }
+  next()
+}
+  , passport.authenticate('local', {
+    // failureMessage: true,
+    failureFlash: true,
+    failureRedirect: '/users/login'
+  }), (req, res) => {
+    res.redirect('/')
+  })
 
 
 //logout
 // get logout
 router.get('/logout', (req, res) => {
   req.logout()
+  req.flash('success_msg', 'You have logout successfully!')
   res.redirect('/users/login')
 })
 
