@@ -1,6 +1,8 @@
 const express = require('express')
 const { engine } = require('express-handlebars')
 const methodOverride = require('method-override')
+const session = require('express-session')
+const usePassport = require('./config/passport')
 
 const routes = require('./routes')
 
@@ -12,8 +14,14 @@ app.set('view engine', 'hbs')
 app.use(methodOverride('_method'))
 app.use(express.urlencoded({ extended: true }))
 
-app.use(routes)
+app.use(session({
+  secret: 'ThisIsMySecret',
+  resave: false,
+  saveUninitialized: true
+}))
 
+usePassport(app)
+app.use(routes)
 
 
 
