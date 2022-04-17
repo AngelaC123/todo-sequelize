@@ -4,6 +4,22 @@ const router = express.Router()
 const db = require('../../models')
 const Todo = db.Todo
 
+// create
+router.get('/new', (req, res) => {
+  res.render('new')
+})
+
+router.post('/', (req, res) => {
+  const name = req.body.name
+  const UserId = req.user.id
+
+  return Todo.create({ name, UserId })
+    .then(() => res.redirect('/'))
+    .catch(error => console.log(error))
+})
+
+
+
 // view detail
 router.get('/:id', (req, res) => {
   const id = req.params.id
@@ -14,11 +30,7 @@ router.get('/:id', (req, res) => {
 })
 
 // edit
-// view edit page
 router.get('/:id/edit', (req, res) => {
-  // get user id, todo id
-  // find data
-  //render edit apge
   const id = req.params.id
   const UserId = req.user.id
   return Todo.findOne({ where: { id, UserId } })
@@ -28,8 +40,6 @@ router.get('/:id/edit', (req, res) => {
 
 // post edited data
 router.put('/:id', (req, res) => {
-  // get data from input
-  // save to the data
 
   const id = req.params.id
   const UserId = req.user.id
